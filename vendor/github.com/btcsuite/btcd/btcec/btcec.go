@@ -36,9 +36,16 @@ var (
 // interface from crypto/elliptic.
 type KoblitzCurve struct {
 	*elliptic.CurveParams
-	q         *big.Int
+
+	// q is the value (P+1)/4 used to compute the square root of field
+	// elements.
+	q *big.Int
+
 	H         int      // cofactor of the curve.
 	halfOrder *big.Int // half the order N
+
+	// fieldB is the constant B of the curve as a fieldVal.
+	fieldB *fieldVal
 
 	// byteSize is simply the bit size / 8 and is provided for convenience
 	// since it is calculated repeatedly.
@@ -879,9 +886,19 @@ func (curve *KoblitzCurve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
 	return curve.fieldJacobianToBigAffine(qx, qy, qz)
 }
 
-// QPlus1Div4 returns the Q+1/4 constant for the curve for use in calculating
-// square roots via exponention.
+// QPlus1Div4 returns the (P+1)/4 constant for the curve for use in calculating
+// square roots via exponentiation.
+//
+// DEPRECATED: The actual value returned is (P+1)/4, where as the original
+// method name implies that this value is (((P+1)/4)+1)/4. This method is kept
+// to maintain backwards compatibility of the API. Use Q() instead.
 func (curve *KoblitzCurve) QPlus1Div4() *big.Int {
+	return curve.q
+}
+
+// Q returns the (P+1)/4 constant for the curve for use in calculating square
+// roots via exponentiation.
+func (curve *KoblitzCurve) Q() *big.Int {
 	return curve.q
 }
 
@@ -913,10 +930,13 @@ func initS256() {
 	secp256k1.Gx = fromHex("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798")
 	secp256k1.Gy = fromHex("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8")
 	secp256k1.BitSize = 256
+	// Curve name taken from https://safecurves.cr.yp.to/.
+	secp256k1.Name = "secp256k1"
 	secp256k1.q = new(big.Int).Div(new(big.Int).Add(secp256k1.P,
 		big.NewInt(1)), big.NewInt(4))
 	secp256k1.H = 1
 	secp256k1.halfOrder = new(big.Int).Rsh(secp256k1.N, 1)
+	secp256k1.fieldB = new(fieldVal).SetByteSlice(secp256k1.B.Bytes())
 
 	// Provided for convenience since this gets computed repeatedly.
 	secp256k1.byteSize = secp256k1.BitSize / 8

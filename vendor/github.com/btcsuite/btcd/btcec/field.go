@@ -102,6 +102,20 @@ const (
 	fieldPrimeWordOne = 0x3ffffbf
 )
 
+var (
+	// fieldQBytes is the value Q = (P+1)/4 for the secp256k1 prime P. This
+	// value is used to efficiently compute the square root of values in the
+	// field via exponentiation. The value of Q in hex is:
+	//
+	//   Q = 3fffffffffffffffffffffffffffffffffffffffffffffffffffffffbfffff0c
+	fieldQBytes = []byte{
+		0x3f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xbf, 0xff, 0xff, 0x0c,
+	}
+)
+
 // fieldVal implements optimized fixed-precision arithmetic over the
 // secp256k1 finite field.  This means all arithmetic is performed modulo
 // 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f.  It
@@ -212,20 +226,24 @@ func (f *fieldVal) SetBytes(b *[32]byte) *fieldVal {
 	return f
 }
 
-// SetByteSlice packs the passed big-endian value into the internal field value
-// representation.  Only the first 32-bytes are used.  As a result, it is up to
-// the caller to ensure numbers of the appropriate size are used or the value
-// will be truncated.
+// SetByteSlice interprets the provided slice as a 256-bit big-endian unsigned
+// integer (meaning it is truncated to the first 32 bytes), packs it into the
+// internal field value representation, and returns the updated field value.
+//
+// Note that since passing a slice with more than 32 bytes is truncated, it is
+// possible that the truncated value is less than the field prime.  It is up to
+// the caller to decide whether it needs to provide numbers of the appropriate
+// size or if it is acceptable to use this function with the described
+// truncation behavior.
 //
 // The field value is returned to support chaining.  This enables syntax like:
 // f := new(fieldVal).SetByteSlice(byteSlice)
 func (f *fieldVal) SetByteSlice(b []byte) *fieldVal {
 	var b32 [32]byte
-	for i := 0; i < len(b); i++ {
-		if i < 32 {
-			b32[i+(32-len(b))] = b[i]
-		}
+	if len(b) > 32 {
+		b = b[:32]
 	}
+	copy(b32[32-len(b):], b)
 	return f.SetBytes(&b32)
 }
 
@@ -1220,4 +1238,119 @@ func (f *fieldVal) Inverse() *fieldVal {
 	f.Square().Square().Square().Square().Square() // f = a^(2^251 - 134217760)
 	f.Square().Square().Square().Square().Square() // f = a^(2^256 - 4294968320)
 	return f.Mul(&a45)                             // f = a^(2^256 - 4294968275) = a^(p-2)
+}
+
+// SqrtVal computes the square root of x modulo the curve's prime, and stores
+// the result in f. The square root is computed via exponentiation of x by the
+// value Q = (P+1)/4 using the curve's precomputed big-endian representation of
+// the Q.  This method uses a modified version of square-and-multiply
+// exponentiation over secp256k1 fieldVals to operate on bytes instead of bits,
+// which offers better performance over both big.Int exponentiation and bit-wise
+// square-and-multiply.
+//
+// NOTE: This method only works when P is intended to be the secp256k1 prime and
+// is not constant time. The returned value is of magnitude 1, but is
+// denormalized.
+func (f *fieldVal) SqrtVal(x *fieldVal) *fieldVal {
+	// The following computation iteratively computes x^((P+1)/4) = x^Q
+	// using the recursive, piece-wise definition:
+	//
+	//   x^n = (x^2)^(n/2) mod P       if n is even
+	//   x^n = x(x^2)^(n-1/2) mod P    if n is odd
+	//
+	// Given n in its big-endian representation b_k, ..., b_0, x^n can be
+	// computed by defining the sequence r_k+1, ..., r_0, where:
+	//
+	//   r_k+1 = 1
+	//   r_i   = (r_i+1)^2 * x^b_i    for i = k, ..., 0
+	//
+	// The final value r_0 = x^n.
+	//
+	// See https://en.wikipedia.org/wiki/Exponentiation_by_squaring for more
+	// details.
+	//
+	// This can be further optimized, by observing that the value of Q in
+	// secp256k1 has the value:
+	//
+	//   Q = 3fffffffffffffffffffffffffffffffffffffffffffffffffffffffbfffff0c
+	//
+	// We can unroll the typical bit-wise interpretation of the
+	// exponentiation algorithm above to instead operate on bytes.
+	// This reduces the number of comparisons by an order of magnitude,
+	// reducing the overhead of failed branch predictions and additional
+	// comparisons in this method.
+	//
+	// Since there there are only 4 unique bytes of Q, this keeps the jump
+	// table small without the need to handle all possible 8-bit values.
+	// Further, we observe that 29 of the 32 bytes are 0xff; making the
+	// first case handle 0xff therefore optimizes the hot path.
+	f.SetInt(1)
+	for _, b := range fieldQBytes {
+		switch b {
+
+		// Most common case, where all 8 bits are set.
+		case 0xff:
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+
+		// First byte of Q (0x3f), where all but the top two bits are
+		// set. Note that this case only applies six operations, since
+		// the highest bit of Q resides in bit six of the first byte. We
+		// ignore the first two bits, since squaring for these bits will
+		// result in an invalid result. We forgo squaring f before the
+		// first multiply, since 1^2 = 1.
+		case 0x3f:
+			f.Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+
+		// Byte 28 of Q (0xbf), where only bit 7 is unset.
+		case 0xbf:
+			f.Square().Mul(x)
+			f.Square()
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+
+		// Byte 31 of Q (0x0c), where only bits 3 and 4 are set.
+		default:
+			f.Square()
+			f.Square()
+			f.Square()
+			f.Square()
+			f.Square().Mul(x)
+			f.Square().Mul(x)
+			f.Square()
+			f.Square()
+		}
+	}
+
+	return f
+}
+
+// Sqrt computes the square root of f modulo the curve's prime, and stores the
+// result in f. The square root is computed via exponentiation of x by the value
+// Q = (P+1)/4 using the curve's precomputed big-endian representation of the Q.
+// This method uses a modified version of square-and-multiply exponentiation
+// over secp256k1 fieldVals to operate on bytes instead of bits, which offers
+// better performance over both big.Int exponentiation and bit-wise
+// square-and-multiply.
+//
+// NOTE: This method only works when P is intended to be the secp256k1 prime and
+// is not constant time. The returned value is of magnitude 1, but is
+// denormalized.
+func (f *fieldVal) Sqrt() *fieldVal {
+	return f.SqrtVal(f)
 }
