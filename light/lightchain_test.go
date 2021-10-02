@@ -18,16 +18,17 @@ package light
 
 import (
 	"context"
+	"errors"
 	"math/big"
 	"testing"
 
-	"github.com/galaxy-foundation/go-ethereum/common"
-	"github.com/galaxy-foundation/go-ethereum/consensus/ethash"
-	"github.com/galaxy-foundation/go-ethereum/core"
-	"github.com/galaxy-foundation/go-ethereum/core/rawdb"
-	"github.com/galaxy-foundation/go-ethereum/core/types"
-	"github.com/galaxy-foundation/go-ethereum/ethdb"
-	"github.com/galaxy-foundation/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // So we can deterministically seed different blockchains
@@ -321,7 +322,7 @@ func TestBadHeaderHashes(t *testing.T) {
 	var err error
 	headers := makeHeaderChainWithDiff(bc.genesisBlock, []int{1, 2, 4}, 10)
 	core.BadHashes[headers[2].Hash()] = true
-	if _, err = bc.InsertHeaderChain(headers, 1); err != core.ErrBlacklistedHash {
+	if _, err = bc.InsertHeaderChain(headers, 1); !errors.Is(err, core.ErrBlacklistedHash) {
 		t.Errorf("error mismatch: have: %v, want %v", err, core.ErrBlacklistedHash)
 	}
 }

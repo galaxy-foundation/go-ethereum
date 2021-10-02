@@ -21,8 +21,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/galaxy-foundation/go-ethereum/common/hexutil"
-	"github.com/galaxy-foundation/go-ethereum/p2p/enode"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/p2p/enode"
 )
 
 func TestParseRoot(t *testing.T) {
@@ -91,7 +91,7 @@ func TestParseEntry(t *testing.T) {
 		// Links
 		{
 			input: "enrtree://AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@nodes.example.org",
-			e:     &linkEntry{"nodes.example.org", &testkey.PublicKey},
+			e:     &linkEntry{"AKPYQIUQIL7PSIACI32J7FGZW56E5FKHEFCCOFHILBIMW3M6LWXS2@nodes.example.org", "nodes.example.org", &testkey.PublicKey},
 		},
 		{
 			input: "enrtree://nodes.example.org",

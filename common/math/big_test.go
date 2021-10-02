@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/galaxy-foundation/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestHexOrDecimal256(t *testing.T) {
@@ -209,6 +209,16 @@ func TestU256(t *testing.T) {
 		if y := U256(new(big.Int).Set(test.x)); y.Cmp(test.y) != 0 {
 			t.Errorf("U256(%x) = %x, want %x", test.x, y, test.y)
 		}
+	}
+}
+
+func TestU256Bytes(t *testing.T) {
+	ubytes := make([]byte, 32)
+	ubytes[31] = 1
+
+	unsigned := U256Bytes(big.NewInt(1))
+	if !bytes.Equal(unsigned, ubytes) {
+		t.Errorf("expected %x got %x", ubytes, unsigned)
 	}
 }
 

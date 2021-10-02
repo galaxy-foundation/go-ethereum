@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/galaxy-foundation/go-ethereum/crypto"
-	"github.com/galaxy-foundation/go-ethereum/p2p"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/p2p"
 )
 
 // Tests that datadirs can be successfully created, be them manually configured

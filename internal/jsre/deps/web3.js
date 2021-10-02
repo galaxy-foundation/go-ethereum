@@ -926,7 +926,7 @@ var SolidityParam = require('./param');
  * @returns {SolidityParam}
  */
 var formatInputInt = function (value) {
-    BigNumber.config(c.ETH_BIGNUMBER_ROUNDING_MODE);
+    BigNumber.config(c.FTM_BIGNUMBER_ROUNDING_MODE);
     var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
     return new SolidityParam(result);
 };
@@ -1192,7 +1192,7 @@ module.exports = SolidityTypeInt;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file param.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -1211,7 +1211,7 @@ var SolidityParam = function (value, offset) {
 
 /**
  * This method should be used to get length of params's dynamic part
- * 
+ *
  * @method dynamicPartLength
  * @returns {Number} length of dynamic part (in bytes)
  */
@@ -1239,7 +1239,7 @@ SolidityParam.prototype.withOffset = function (offset) {
  * @param {SolidityParam} result of combination
  */
 SolidityParam.prototype.combine = function (param) {
-    return new SolidityParam(this.value + param.value); 
+    return new SolidityParam(this.value + param.value);
 };
 
 /**
@@ -1271,8 +1271,8 @@ SolidityParam.prototype.offsetAsBytes = function () {
  */
 SolidityParam.prototype.staticPart = function () {
     if (!this.isDynamic()) {
-        return this.value; 
-    } 
+        return this.value;
+    }
     return this.offsetAsBytes();
 };
 
@@ -1304,7 +1304,7 @@ SolidityParam.prototype.encode = function () {
  * @returns {String}
  */
 SolidityParam.encodeList = function (params) {
-    
+
     // updating offsets
     var totalOffset = params.length * 32;
     var offsetParams = params.map(function (param) {
@@ -1746,22 +1746,22 @@ if (typeof XMLHttpRequest === 'undefined') {
 
 /**
  * Utils
- * 
+ *
  * @module utils
  */
 
 /**
  * Utility functions
- * 
+ *
  * @class [utils] config
  * @constructor
  */
 
 
-/// required to define ETH_BIGNUMBER_ROUNDING_MODE
+/// required to define FTM_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var ETH_UNITS = [
+var FTM_UNITS = [
     'wei',
     'kwei',
     'Mwei',
@@ -1792,11 +1792,11 @@ var ETH_UNITS = [
 ];
 
 module.exports = {
-    ETH_PADDING: 32,
-    ETH_SIGNATURE_LENGTH: 4,
-    ETH_UNITS: ETH_UNITS,
-    ETH_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    ETH_POLLING_TIMEOUT: 1000/2,
+    FTM_PADDING: 32,
+    FTM_SIGNATURE_LENGTH: 4,
+    FTM_UNITS: FTM_UNITS,
+    FTM_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    FTM_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -1819,7 +1819,7 @@ module.exports = {
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file sha3.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -1903,14 +1903,45 @@ var unitMap = {
     'microether':   '1000000000000',
     'micro':        '1000000000000',
     'finney':       '1000000000000000',
-    'milliether':    '1000000000000000',
-    'milli':         '1000000000000000',
+    'milliether':   '1000000000000000',
+    'milli':        '1000000000000000',
     'ether':        '1000000000000000000',
     'kether':       '1000000000000000000000',
     'grand':        '1000000000000000000000',
     'mether':       '1000000000000000000000000',
     'gether':       '1000000000000000000000000000',
-    'tether':       '1000000000000000000000000000000'
+    'tether':       '1000000000000000000000000000000',
+
+    'noftm':      '0',
+    'femtoftm':   '1000',
+    'picoftm':    '1000000',
+    'nanoftm':    '1000000000',
+    'microftm':   '1000000000000',
+    'milliftm':   '1000000000000000',
+    'ftm':        '1000000000000000000',
+    'kftm':       '1000000000000000000000',
+    'mftm':       '1000000000000000000000000',
+    'gftm':       '1000000000000000000000000000',
+    'tftm':       '1000000000000000000000000000000'
+};
+
+/**
+ * Should be called to validator descriptions to hex-string over JSON
+ *
+ * @method toMoniker
+ * @param {String} name is validator name in utf8
+ * @param {String} description is validator description in utf8
+ * @param {String} webSite is validator web site URL
+ * @returns {String} hex string with JSON data
+ */
+var toMoniker = function (name, description, webSite) {
+  var jsData = {
+    Name: name,
+    Description: description,
+    WebSite: webSite
+  };
+
+  return toHex(jsData)
 };
 
 /**
@@ -2441,6 +2472,7 @@ var isTopic = function (topic) {
 };
 
 module.exports = {
+    toMoniker: toMoniker,
     padLeft: padLeft,
     padRight: padRight,
     toHex: toHex,
@@ -2508,7 +2540,11 @@ module.exports={
 
 var RequestManager = require('./web3/requestmanager');
 var Iban = require('./web3/iban');
-var Eth = require('./web3/methods/eth');
+var Ftm = require('./web3/methods/ftm');
+var Debug = require('./web3/methods/debug');
+var Sfc = require('./web3/methods/sfc');
+var Abft = require('./web3/methods/abft');
+var Dag = require('./web3/methods/dag');
 var DB = require('./web3/methods/db');
 var Shh = require('./web3/methods/shh');
 var Net = require('./web3/methods/net');
@@ -2530,7 +2566,11 @@ var BigNumber = require('bignumber.js');
 function Web3 (provider) {
     this._requestManager = new RequestManager(provider);
     this.currentProvider = provider;
-    this.eth = new Eth(this);
+    this.ftm = new Ftm(this);
+    this.debug = new Debug(this);
+    this.sfc = new Sfc(this);
+    this.abft = new Abft(this);
+    this.dag = new Dag(this);
     this.db = new DB(this);
     this.shh = new Shh(this);
     this.net = new Net(this);
@@ -2583,7 +2623,7 @@ Web3.prototype.toChecksumAddress = utils.toChecksumAddress;
 Web3.prototype.isIBAN = utils.isIBAN;
 Web3.prototype.padLeft = utils.padLeft;
 Web3.prototype.padRight = utils.padRight;
-
+Web3.prototype.toMoniker = utils.toMoniker;
 
 Web3.prototype.sha3 = function(string, options) {
     return '0x' + sha3(string, options);
@@ -2609,13 +2649,8 @@ var properties = function () {
             inputFormatter: utils.toDecimal
         }),
         new Property({
-            name: 'version.ethereum',
+            name: 'version.lachesis',
             getter: 'eth_protocolVersion',
-            inputFormatter: utils.toDecimal
-        }),
-        new Property({
-            name: 'version.whisper',
-            getter: 'shh_version',
             inputFormatter: utils.toDecimal
         })
     ];
@@ -2632,7 +2667,7 @@ Web3.prototype.createBatch = function () {
 module.exports = Web3;
 
 
-},{"./utils/sha3":19,"./utils/utils":20,"./version.json":21,"./web3/batch":24,"./web3/extend":28,"./web3/httpprovider":32,"./web3/iban":33,"./web3/ipcprovider":34,"./web3/methods/db":37,"./web3/methods/eth":38,"./web3/methods/net":39,"./web3/methods/personal":40,"./web3/methods/shh":41,"./web3/methods/swarm":42,"./web3/property":45,"./web3/requestmanager":46,"./web3/settings":47,"bignumber.js":"bignumber.js"}],23:[function(require,module,exports){
+},{"./utils/sha3":19,"./utils/utils":20,"./version.json":21,"./web3/batch":24,"./web3/extend":28,"./web3/httpprovider":32,"./web3/iban":33,"./web3/ipcprovider":34,"./web3/methods/db":37,"./web3/methods/ftm":38,"./web3/methods/debug":380,"./web3/methods/sfc":381,"./web3/methods/abft":382,"./web3/methods/dag":383,"./web3/methods/net":39,"./web3/methods/personal":40,"./web3/methods/shh":41,"./web3/methods/swarm":42,"./web3/property":45,"./web3/requestmanager":46,"./web3/settings":47,"bignumber.js":"bignumber.js"}],23:[function(require,module,exports){
 /*
     This file is part of web3.js.
 
@@ -2711,7 +2746,7 @@ AllSolidityEvents.prototype.execute = function (options, callback) {
 
     var o = this.encode(options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
+    return new Filter(o, 'ftm', this._requestManager, watches.ftm(), formatter, callback);
 };
 
 AllSolidityEvents.prototype.attachToContract = function (contract) {
@@ -2739,7 +2774,7 @@ module.exports = AllSolidityEvents;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file batch.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -2784,7 +2819,7 @@ Batch.prototype.execute = function () {
                 requests[index].callback(null, (requests[index].format ? requests[index].format(result.result) : result.result));
             }
         });
-    }); 
+    });
 };
 
 module.exports = Batch;
@@ -2849,7 +2884,7 @@ var addFunctionsToContract = function (contract) {
     contract.abi.filter(function (json) {
         return json.type === 'function';
     }).map(function (json) {
-        return new SolidityFunction(contract._eth, json, contract.address);
+        return new SolidityFunction(contract._ftm, json, contract.address);
     }).forEach(function (f) {
         f.attachToContract(contract);
     });
@@ -2867,11 +2902,11 @@ var addEventsToContract = function (contract) {
         return json.type === 'event';
     });
 
-    var All = new AllEvents(contract._eth._requestManager, events, contract.address);
+    var All = new AllEvents(contract._ftm._requestManager, events, contract.address);
     All.attachToContract(contract);
 
     events.map(function (json) {
-        return new SolidityEvent(contract._eth._requestManager, json, contract.address);
+        return new SolidityEvent(contract._ftm._requestManager, json, contract.address);
     }).forEach(function (e) {
         e.attachToContract(contract);
     });
@@ -2891,7 +2926,7 @@ var checkForContractAddress = function(contract, callback){
         callbackFired = false;
 
     // wait for receipt
-    var filter = contract._eth.filter('latest', function(e){
+    var filter = contract._ftm.filter('latest', function(e){
         if (!e && !callbackFired) {
             count++;
 
@@ -2909,10 +2944,10 @@ var checkForContractAddress = function(contract, callback){
 
             } else {
 
-                contract._eth.getTransactionReceipt(contract.transactionHash, function(e, receipt){
+                contract._ftm.getTransactionReceipt(contract.transactionHash, function(e, receipt){
                     if(receipt && !callbackFired) {
 
-                        contract._eth.getCode(receipt.contractAddress, function(e, code){
+                        contract._ftm.getCode(receipt.contractAddress, function(e, code){
                             /*jshint maxcomplexity: 6 */
 
                             if(callbackFired || !code)
@@ -2955,8 +2990,8 @@ var checkForContractAddress = function(contract, callback){
  * @method ContractFactory
  * @param {Array} abi
  */
-var ContractFactory = function (eth, abi) {
-    this.eth = eth;
+var ContractFactory = function (ftm, abi) {
+    this.ftm = ftm;
     this.abi = abi;
 
     /**
@@ -2971,8 +3006,8 @@ var ContractFactory = function (eth, abi) {
      */
     this.new = function () {
         /*jshint maxcomplexity: 7 */
-        
-        var contract = new Contract(this.eth, this.abi);
+
+        var contract = new Contract(this.ftm, this.abi);
 
         // parse arguments
         var options = {}; // required!
@@ -3004,7 +3039,7 @@ var ContractFactory = function (eth, abi) {
         if (callback) {
 
             // wait for the contract address and check if the code was deployed
-            this.eth.sendTransaction(options, function (err, hash) {
+            this.ftm.sendTransaction(options, function (err, hash) {
                 if (err) {
                     callback(err);
                 } else {
@@ -3018,7 +3053,7 @@ var ContractFactory = function (eth, abi) {
                 }
             });
         } else {
-            var hash = this.eth.sendTransaction(options);
+            var hash = this.ftm.sendTransaction(options);
             // add the transaction hash
             contract.transactionHash = hash;
             checkForContractAddress(contract);
@@ -3053,10 +3088,10 @@ var ContractFactory = function (eth, abi) {
  * otherwise calls callback function (err, contract)
  */
 ContractFactory.prototype.at = function (address, callback) {
-    var contract = new Contract(this.eth, this.abi, address);
+    var contract = new Contract(this.ftm, this.abi, address);
 
     // this functions are not part of prototype,
-    // because we dont want to spoil the interface
+    // because we don't want to spoil the interface
     addFunctionsToContract(contract);
     addEventsToContract(contract);
 
@@ -3093,8 +3128,8 @@ ContractFactory.prototype.getData = function () {
  * @param {Array} abi
  * @param {Address} contract address
  */
-var Contract = function (eth, abi, address) {
-    this._eth = eth;
+var Contract = function (ftm, abi, address) {
+    this._ftm = ftm;
     this.transactionHash = null;
     this.address = address;
     this.abi = abi;
@@ -3119,7 +3154,7 @@ module.exports = ContractFactory;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file errors.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -3336,7 +3371,7 @@ SolidityEvent.prototype.execute = function (indexed, options, callback) {
 
     var o = this.encode(indexed, options);
     var formatter = this.decode.bind(this);
-    return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
+    return new Filter(o, 'ftm', this._requestManager, watches.ftm(), formatter, callback);
 };
 
 /**
@@ -3394,7 +3429,7 @@ var extend = function (web3) {
         }
     };
 
-    ex.formatters = formatters; 
+    ex.formatters = formatters;
     ex.utils = utils;
     ex.Method = Method;
     ex.Property = Property;
@@ -3470,7 +3505,7 @@ var getOptions = function (options, type) {
 
 
     switch(type) {
-        case 'eth':
+        case 'ftm':
 
             // make sure topics, get converted to hex
             options.topics = options.topics || [];
@@ -3825,6 +3860,7 @@ var outputBlockFormatter = function(block) {
     block.gasUsed = utils.toDecimal(block.gasUsed);
     block.size = utils.toDecimal(block.size);
     block.timestamp = utils.toDecimal(block.timestamp);
+    block.timestampNano = utils.toDecimal(block.timestampNano);
     if(block.number !== null)
         block.number = utils.toDecimal(block.number);
 
@@ -3839,6 +3875,280 @@ var outputBlockFormatter = function(block) {
     }
 
     return block;
+};
+
+/**
+ * @method outputEpochStatsFormatter
+ * @param {Object} epoch stats data
+ * @returns {Object}
+ */
+var outputEpochStatsFormatter = function(data) {
+
+  // transform to number
+  data.epoch = utils.toDecimal(data.epoch);
+  data.start = utils.toDecimal(data.start);
+  data.end = utils.toDecimal(data.end);
+  data.totalBaseRewardWeight = utils.toBigNumber(data.totalBaseRewardWeight);
+  data.totalFee = utils.toBigNumber(data.totalFee);
+  data.totalTxRewardWeight = utils.toBigNumber(data.totalTxRewardWeight);
+
+  return data;
+};
+
+/**
+ * @method outputDagEventFormatter
+ * @param {Object} DAG event data
+ * @returns {Object}
+ */
+var outputDagEventFormatter = function(data) {
+    //"id":               hexutil.Bytes(header.ID().Bytes()),
+    //"prevEpochHash":    header.PrevEpochHash(),
+    //"parents":          eventIDsToHex(header.Parents()),
+    //"extraData":        hexutil.Bytes(header.Extra()),
+    //"transactionsRoot": hexutil.Bytes(header.TxHash().Bytes()),
+
+    // transform to number
+    data.epoch = utils.toDecimal(data.epoch);
+    data.seq = utils.toDecimal(data.seq);
+    data.frame = utils.toDecimal(data.frame);
+    data.creator = utils.toDecimal(data.creator);
+    data.lamport = utils.toDecimal(data.lamport);
+    data.creationTime = utils.toDecimal(data.creationTime);
+    data.medianTime = utils.toDecimal(data.medianTime);
+    data.gasPowerLeft.shortTerm = utils.toDecimal(data.gasPowerLeft.shortTerm);
+    data.gasPowerLeft.longTerm = utils.toDecimal(data.gasPowerLeft.longTerm);
+    data.gasPowerUsed = utils.toDecimal(data.gasPowerUsed);
+    if (data.hasOwnProperty('size')) {
+        data.size = utils.toDecimal(data.size);
+    }
+    if (data.hasOwnProperty('transactions') && utils.isArray(data.transactions)) {
+        data.transactions.forEach(function(item, i) {
+            if (!utils.isString(item)) {
+                data.transactions[i] = outputTransactionFormatter(item)
+            }
+        })
+    }
+
+    return data;
+};
+
+/**
+ * @method outputHeadsFormatter
+ * @param {Object} stakers data
+ * @returns {Object}
+ */
+var outputHeadsFormatter = function(data) {
+    if (utils.isArray(data)) {
+        data.forEach(function(item, i) {
+            data[i] = item // TODO: format
+        })
+    };
+
+    return data;
+};
+
+/**
+ * @method outputStakerFormatter
+ * @param {Object} staker data
+ * @returns {Object}
+ */
+var outputStakerFormatter = function(data) {
+    data.id = utils.toDecimal(data.id);
+    data.createdEpoch = utils.toDecimal(data.createdEpoch);
+    data.createdTime = utils.toBigNumber(data.createdTime);
+    data.deactivatedEpoch = utils.toDecimal(data.deactivatedEpoch);
+    data.deactivatedTime = utils.toBigNumber(data.deactivatedTime);
+    data.delegatedMe = utils.toDecimal(data.delegatedMe);
+    data.stake = utils.toBigNumber(data.stake);
+    data.totalStake = utils.toBigNumber(data.totalStake);
+
+    if (data.hasOwnProperty('baseRewardWeight')) {
+        data.baseRewardWeight = utils.toBigNumber(data.baseRewardWeight);
+        data.claimedRewards = utils.toBigNumber(data.claimedRewards);
+        data.delegationsClaimedRewards = utils.toBigNumber(data.delegationsClaimedRewards);
+        data.downtime = utils.toBigNumber(data.downtime);
+        data.missedBlocks = utils.toBigNumber(data.missedBlocks);
+        data.originationScore = utils.toBigNumber(data.originationScore);
+        data.poi = utils.toBigNumber(data.poi);
+        data.txRewardWeight = utils.toBigNumber(data.txRewardWeight);
+        data.validationScore = utils.toBigNumber(data.validationScore);
+    };
+
+    return data;
+};
+
+/**
+ * @method outputStakersFormatter
+ * @param {Object} stakers data
+ * @returns {Object}
+ */
+var outputStakersFormatter = function(data) {
+    if (utils.isArray(data)) {
+        data.forEach(function(item, i) {
+          if (typeof(item) != 'string') {
+            data[i] = outputStakerFormatter(item)
+          } else {
+            data[i] = utils.toDecimal(item)
+          }
+        })
+    };
+
+    return data;
+};
+
+/**
+ * @method outputDelegationFormatter
+ * @param {Object} staker data
+ * @returns {Object}
+ */
+var outputDelegationFormatter = function(data) {
+    data.toStakerID = utils.toDecimal(data.toStakerID);
+    data.amount = utils.toBigNumber(data.amount);
+    data.createdEpoch = utils.toDecimal(data.createdEpoch);
+    data.createdTime = utils.toBigNumber(data.createdTime);
+    data.deactivatedEpoch = utils.toDecimal(data.deactivatedEpoch);
+    data.deactivatedTime = utils.toBigNumber(data.deactivatedTime);
+
+    if (data.hasOwnProperty('claimedRewards')) {
+        data.claimedRewards = utils.toBigNumber(data.claimedRewards);
+    }
+
+    return data;
+};
+
+/**
+ * @method outputDelegationsFormatter
+ * @param {Object} delegations data
+ * @returns {Object}
+ */
+var outputDelegationsFormatter = function(data) {
+    if (utils.isArray(data)) {
+        data.forEach(function(item, i) {
+            if (typeof(item) != 'string') {
+              data[i] = outputDelegationFormatter(item)
+            }
+        })
+    }
+
+    return data;
+};
+
+/**
+ * @method outputHistogramFormatter
+ * @param {Array} histogram data
+ * @returns {Array}
+ */
+var outputHistogramFormatter = function(data) {
+    if (utils.isArray(data)) {
+        data.forEach(function(item, i) {
+            item.count = utils.toDecimal(item.count);
+            data[i] = item
+        })
+    }
+
+    return data;
+};
+
+/**
+ * @method outputDecimalProperties
+ * @param {Object} data
+ * @returns {Object}
+ */
+var outputDecimalProperties = function(data) {
+    Object.keys(data).forEach(function(k){
+        data[k] = utils.toDecimal(data[k])
+    });
+
+    return data;
+};
+
+/**
+ * @method outputBlocksTTFFormatter
+ * @param {Object} blocksTTF stats data
+ * @returns {Object}
+ */
+var outputBlocksTTFFormatter = function(data) {
+    // transform to number
+    data.stats.samples = utils.toDecimal(data.stats.samples);
+
+    // histogram
+    if (data.hasOwnProperty('histogram') && utils.isArray(data.histogram)) {
+        data.histogram = outputHistogramFormatter(data.histogram)
+    }
+
+    return data;
+};
+
+/**
+ * @method outputKeysToDecimal
+ * @param {Object} data
+ * @returns {Object}
+ */
+var outputKeysToDecimal = function(data) {
+    var newData = new Object();
+    Object.keys(data).forEach(function(k){
+      newData[utils.toDecimal(k)] = data[k]
+    });
+
+    return newData;
+};
+
+/**
+ * @method outputKeyValuesToDecimal
+ * @param {Object} data
+ * @returns {Object}
+ */
+var outputKeyValuesToDecimal = function(data) {
+    var newData = new Object();
+    Object.keys(data).forEach(function(k){
+      newData[utils.toDecimal(k)] = utils.toDecimal(data[k])
+    });
+
+    return newData;
+};
+
+/**
+ * @method outputBlocksTPSFormatter
+ * @param {Object} data
+ * @returns {Float}
+ */
+var outputBlocksTPSFormatter = function(data) {
+    var minTime = 0;
+    var maxTime = 0;
+    var totalCount = 0;
+    Object.keys(data).forEach(function(k){
+      var time = utils.toDecimal(k);
+      var count = utils.toDecimal(data[k]);
+      if (minTime == 0 || minTime > time) {
+        minTime = time;
+      }
+      if (maxTime == 0 || maxTime < time) {
+        maxTime = time
+      }
+      totalCount += count;
+    });
+    if (maxTime <= minTime) {
+      return 0.0;
+    }
+
+    return totalCount * 1e9 / (maxTime - minTime);
+};
+
+/**
+ * @method outputValidatorTimeDriftsFormatter
+ * @param {Object} validatorTimeDrifts stats data
+ * @returns {Object}
+ */
+var outputValidatorTimeDriftsFormatter = function(data) {
+    Object.keys(data).forEach(function(k){
+        data[k].stats.samples = utils.toDecimal(data[k].stats.samples);
+
+        if (data[k].hasOwnProperty('histogram') && utils.isArray(data[k].histogram)) {
+            data[k].histogram = outputHistogramFormatter(data[k].histogram)
+        }
+    });
+
+    return outputKeysToDecimal(data);
 };
 
 /**
@@ -3960,7 +4270,20 @@ module.exports = {
     outputBlockFormatter: outputBlockFormatter,
     outputLogFormatter: outputLogFormatter,
     outputPostFormatter: outputPostFormatter,
-    outputSyncingFormatter: outputSyncingFormatter
+    outputSyncingFormatter: outputSyncingFormatter,
+    outputEpochStatsFormatter: outputEpochStatsFormatter,
+    outputDagEventFormatter: outputDagEventFormatter,
+    outputHeadsFormatter: outputHeadsFormatter,
+    outputBlocksTTFFormatter: outputBlocksTTFFormatter,
+    outputValidatorTimeDriftsFormatter: outputValidatorTimeDriftsFormatter,
+    outputDecimalProperties: outputDecimalProperties,
+    outputStakerFormatter: outputStakerFormatter,
+    outputStakersFormatter: outputStakersFormatter,
+    outputKeysToDecimal: outputKeysToDecimal,
+    outputKeyValuesToDecimal: outputKeyValuesToDecimal,
+    outputBlocksTPSFormatter: outputBlocksTPSFormatter,
+    outputDelegationFormatter: outputDelegationFormatter,
+    outputDelegationsFormatter: outputDelegationsFormatter
 };
 
 
@@ -3996,8 +4319,8 @@ var sha3 = require('../utils/sha3');
 /**
  * This prototype should be used to call/sendTransaction to solidity functions
  */
-var SolidityFunction = function (eth, json, address) {
-    this._eth = eth;
+var SolidityFunction = function (ftm, json, address) {
+    this._ftm = ftm;
     this._inputTypes = json.inputs.map(function (i) {
         return i.type;
     });
@@ -4099,12 +4422,12 @@ SolidityFunction.prototype.call = function () {
 
 
     if (!callback) {
-        var output = this._eth.call(payload, defaultBlock);
+        var output = this._ftm.call(payload, defaultBlock);
         return this.unpackOutput(output);
     }
 
     var self = this;
-    this._eth.call(payload, defaultBlock, function (error, output) {
+    this._ftm.call(payload, defaultBlock, function (error, output) {
         if (error) return callback(error, null);
 
         var unpacked = null;
@@ -4134,10 +4457,10 @@ SolidityFunction.prototype.sendTransaction = function () {
     }
 
     if (!callback) {
-        return this._eth.sendTransaction(payload);
+        return this._ftm.sendTransaction(payload);
     }
 
-    this._eth.sendTransaction(payload, callback);
+    this._ftm.sendTransaction(payload, callback);
 };
 
 /**
@@ -4151,10 +4474,10 @@ SolidityFunction.prototype.estimateGas = function () {
     var payload = this.toPayload(args);
 
     if (!callback) {
-        return this._eth.estimateGas(payload);
+        return this._ftm.estimateGas(payload);
     }
 
-    this._eth.estimateGas(payload, callback);
+    this._ftm.estimateGas(payload, callback);
 };
 
 /**
@@ -4425,7 +4748,7 @@ module.exports = HttpProvider;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file iban.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -4625,7 +4948,7 @@ Iban.prototype.address = function () {
         var base36 = this._iban.substr(4);
         var asBn = new BigNumber(base36, 36);
         return padLeft(asBn.toString(16), 20);
-    } 
+    }
 
     return '';
 };
@@ -4670,7 +4993,7 @@ var IpcProvider = function (path, net) {
     var _this = this;
     this.responseCallbacks = {};
     this.path = path;
-    
+
     this.connection = net.connect({path: this.path});
 
     this.connection.on('error', function(e){
@@ -4680,7 +5003,7 @@ var IpcProvider = function (path, net) {
 
     this.connection.on('end', function(){
         _this._timeout();
-    }); 
+    });
 
 
     // LISTEN FOR CONNECTION RESPONSES
@@ -4719,7 +5042,7 @@ Will parse the response and make an array out of it.
 IpcProvider.prototype._parseResponse = function(data) {
     var _this = this,
         returnValues = [];
-    
+
     // DE-CHUNKER
     var dechunkedData = data
         .replace(/\}[\n\r]?\{/g,'}|--|{') // }{
@@ -4823,7 +5146,7 @@ IpcProvider.prototype.send = function (payload) {
         try {
             result = JSON.parse(data);
         } catch(e) {
-            throw errors.InvalidResponse(data);                
+            throw errors.InvalidResponse(data);
         }
 
         return result;
@@ -4998,7 +5321,7 @@ Method.prototype.extractCallback = function (args) {
 
 /**
  * Should be called to check if the number of arguments is correct
- * 
+ *
  * @method validateArgs
  * @param {Array} arguments
  * @throws {Error} if it is not
@@ -5011,7 +5334,7 @@ Method.prototype.validateArgs = function (args) {
 
 /**
  * Should be called to format input args of method
- * 
+ *
  * @method formatInput
  * @param {Array}
  * @return {Array}
@@ -5065,7 +5388,7 @@ Method.prototype.attachToObject = function (obj) {
         obj[name[0]] = obj[name[0]] || {};
         obj[name[0]][name[1]] = func;
     } else {
-        obj[name[0]] = func; 
+        obj[name[0]] = func;
     }
 };
 
@@ -5128,8 +5451,8 @@ var DB = function (web3) {
     this._requestManager = web3._requestManager;
 
     var self = this;
-    
-    methods().forEach(function(method) { 
+
+    methods().forEach(function(method) {
         method.attachToObject(self);
         method.setRequestManager(web3._requestManager);
     });
@@ -5226,7 +5549,7 @@ var uncleCountCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleCountByBlockHash' : 'eth_getUncleCountByBlockNumber';
 };
 
-function Eth(web3) {
+function Ftm(web3) {
     this._requestManager = web3._requestManager;
 
     var self = this;
@@ -5246,7 +5569,7 @@ function Eth(web3) {
     this.sendIBANTransaction = transfer.bind(null, this);
 }
 
-Object.defineProperty(Eth.prototype, 'defaultBlock', {
+Object.defineProperty(Ftm.prototype, 'defaultBlock', {
     get: function () {
         return c.defaultBlock;
     },
@@ -5256,7 +5579,7 @@ Object.defineProperty(Eth.prototype, 'defaultBlock', {
     }
 });
 
-Object.defineProperty(Eth.prototype, 'defaultAccount', {
+Object.defineProperty(Ftm.prototype, 'defaultAccount', {
     get: function () {
         return c.defaultAccount;
     },
@@ -5431,6 +5754,47 @@ var methods = function () {
         params: 0
     });
 
+    var getEvent = new Method({
+        name: 'getEvent',
+        call: 'ftm_getEvent',
+        params: 2
+    });
+
+    var getEventHeader = new Method({
+        name: 'getEventHeader',
+        call: 'ftm_getEventHeader',
+        params: 1
+    });
+
+    var getHeads = new Method({
+        name: 'getHeads',
+        call: 'ftm_getHeads',
+        params: 1,
+        inputFormatter: [formatters.inputBlockNumberFormatter]
+    });
+
+    var getConsensusTime = new Method({
+        name: 'getConsensusTime',
+        call: 'ftm_getConsensusTime',
+        params: 1,
+        outputFormatter: utils.toDecimal
+    });
+
+    var currentEpoch = new Method({
+        name: 'currentEpoch',
+        call: 'ftm_currentEpoch',
+        params: 0,
+        outputFormatter: utils.toDecimal
+    });
+
+    var getEpochStats = new Method({
+        name: 'getEpochStats',
+        call: 'ftm_getEpochStats',
+        params: 1,
+        inputFormatter: [formatters.inputBlockNumberFormatter],
+        outputFormatter: formatters.outputEpochStatsFormatter
+    });
+
     return [
         getBalance,
         getStorageAt,
@@ -5454,7 +5818,13 @@ var methods = function () {
         compileLLL,
         compileSerpent,
         submitWork,
-        getWork
+        getWork,
+        getEvent,
+        getEventHeader,
+        getHeads,
+        getConsensusTime,
+        currentEpoch,
+        getEpochStats
     ];
 };
 
@@ -5464,10 +5834,6 @@ var properties = function () {
         new Property({
             name: 'coinbase',
             getter: 'eth_coinbase'
-        }),
-        new Property({
-            name: 'mining',
-            getter: 'eth_mining'
         }),
         new Property({
             name: 'hashrate',
@@ -5500,30 +5866,502 @@ var properties = function () {
     ];
 };
 
-Eth.prototype.contract = function (abi) {
+Ftm.prototype.contract = function (abi) {
     var factory = new Contract(this, abi);
     return factory;
 };
 
-Eth.prototype.filter = function (options, callback, filterCreationErrorCallback) {
-    return new Filter(options, 'eth', this._requestManager, watches.eth(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
+Ftm.prototype.filter = function (options, callback, filterCreationErrorCallback) {
+    return new Filter(options, 'ftm', this._requestManager, watches.ftm(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
 };
 
-Eth.prototype.namereg = function () {
+Ftm.prototype.namereg = function () {
     return this.contract(namereg.global.abi).at(namereg.global.address);
 };
 
-Eth.prototype.icapNamereg = function () {
+Ftm.prototype.icapNamereg = function () {
     return this.contract(namereg.icap.abi).at(namereg.icap.address);
 };
 
-Eth.prototype.isSyncing = function (callback) {
+Ftm.prototype.isSyncing = function (callback) {
     return new IsSyncing(this._requestManager, callback);
 };
 
-module.exports = Eth;
+module.exports = Ftm;
 
-},{"../../utils/config":18,"../../utils/utils":20,"../contract":25,"../filter":29,"../formatters":30,"../iban":33,"../method":36,"../namereg":44,"../property":45,"../syncing":48,"../transfer":49,"./watches":43}],39:[function(require,module,exports){
+},{"../../utils/config":18,"../../utils/utils":20,"../contract":25,"../filter":29,"../formatters":30,"../iban":33,"../method":36,"../namereg":44,"../property":45,"../syncing":48,"../transfer":49,"./watches":43}],380:[function(require,module,exports){
+/*
+      This file is part of web3.js.
+
+      web3.js is free software: you can redistribute it and/or modify
+      it under the terms of the GNU Lesser General Public License as published by
+      the Free Software Foundation, either version 3 of the License, or
+      (at your option) any later version.
+
+      web3.js is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU Lesser General Public License for more details.
+
+      You should have received a copy of the GNU Lesser General Public License
+      along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/**
+ * @file debug.js
+ * @author Marek Kotewicz <marek@ethdev.com>
+ * @author Fabian Vogelsteller <fabian@ethdev.com>
+ * @date 2015
+ */
+
+"use strict";
+
+var formatters = require('../formatters');
+var utils = require('../../utils/utils');
+var Method = require('../method');
+var Property = require('../property');
+var c = require('../../utils/config');
+var Contract = require('../contract');
+var watches = require('./watches');
+var Filter = require('../filter');
+var IsSyncing = require('../syncing');
+var namereg = require('../namereg');
+var Iban = require('../iban');
+var transfer = require('../transfer');
+
+function Debug(web3) {
+  this._requestManager = web3._requestManager;
+
+  var self = this;
+
+  methods().forEach(function(method) {
+    method.attachToObject(self);
+    method.setRequestManager(self._requestManager);
+  });
+
+  properties().forEach(function(p) {
+    p.attachToObject(self);
+    p.setRequestManager(self._requestManager);
+  });
+
+
+  this.iban = Iban;
+  this.sendIBANTransaction = transfer.bind(null, this);
+}
+
+var methods = function () {
+  // Output formaters for 'samples' and 'count'?
+
+  var validatorTimeDrifts = new Method({
+    name: 'validatorTimeDrifts',
+    call: 'debug_validatorTimeDrifts',
+    params: 3,
+    inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex, utils.toHex],
+    outputFormatter: formatters.outputValidatorTimeDriftsFormatter
+  });
+
+  var validatorVersions = new Method({
+    name: 'validatorVersions',
+    call: 'debug_validatorVersions',
+    params: 2,
+    inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
+    outputFormatter: formatters.outputKeysToDecimal
+  });
+
+  var blocksTransactionTimes = new Method({
+    name: 'blocksTransactionTimes',
+    call: 'debug_blocksTransactionTimes',
+    params: 2,
+    inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
+    outputFormatter: formatters.outputKeyValuesToDecimal
+  });
+
+  var blocksTTF = new Method({
+    name: 'blocksTTF',
+    call: 'debug_blocksTTF',
+    params: 4,
+    inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex, null, utils.toHex ],
+    outputFormatter: formatters.outputBlocksTTFFormatter
+  });
+
+  var blocksTPS = new Method({
+    name: 'blocksTPS',
+    call: 'debug_blocksTransactionTimes',
+    params: 2,
+    inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
+    outputFormatter: formatters.outputBlocksTPSFormatter
+  });
+
+  return [
+    validatorTimeDrifts,
+    validatorVersions,
+    blocksTransactionTimes,
+    blocksTTF,
+    blocksTPS
+  ];
+};
+
+var properties = function () {
+  return [];
+};
+
+module.exports = Debug;
+
+},{"../../utils/config":18,"../../utils/utils":20,"../contract":25,"../filter":29,"../formatters":30,"../iban":33,"../method":36,"../namereg":44,"../property":45,"../syncing":48,"../transfer":49,"./watches":43}],381:[function(require,module,exports){
+/*
+      This file is part of web3.js.
+
+      web3.js is free software: you can redistribute it and/or modify
+      it under the terms of the GNU Lesser General Public License as published by
+      the Free Software Foundation, either version 3 of the License, or
+      (at your option) any later version.
+
+      web3.js is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU Lesser General Public License for more details.
+
+      You should have received a copy of the GNU Lesser General Public License
+      along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/**
+ * @file sfc.js
+ * @author Marek Kotewicz <marek@ethdev.com>
+ * @author Fabian Vogelsteller <fabian@ethdev.com>
+ * @author devintegral3 <devintegral3@sfxdx.ru>
+ * @date 2020
+ */
+
+"use strict";
+
+var formatters = require('../formatters');
+var utils = require('../../utils/utils');
+var Method = require('../method');
+
+function Sfc(web3) {
+    this._requestManager = web3._requestManager;
+
+    var self = this;
+
+    methods().forEach(function(method) {
+      method.attachToObject(self);
+      method.setRequestManager(self._requestManager);
+    });
+
+    properties().forEach(function(p) {
+      p.attachToObject(self);
+      p.setRequestManager(self._requestManager);
+    });
+}
+
+var methods = function () {
+
+    var getValidationScore = new Method({
+      name: 'getValidationScore',
+      call: 'sfc_getValidationScore',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    var getOriginationScore = new Method({
+      name: 'getOriginationScore',
+      call: 'sfc_getOriginationScore',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    var getStakerPoI = new Method({
+      name: 'getStakerPoI',
+      call: 'sfc_getStakerPoI',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    var getRewardWeights = new Method({
+      name: 'getRewardWeights',
+      call: 'sfc_getRewardWeights',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputDecimalProperties
+    });
+
+    var getDowntime = new Method({
+      name: 'getDowntime',
+      call: 'sfc_getDowntime',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputDecimalProperties
+    });
+
+    var getStaker = new Method({
+      name: 'getStaker',
+      call: 'sfc_getStaker',
+      params: 2,
+      inputFormatter: [utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputStakerFormatter
+    });
+
+    var getStakerByAddress = new Method({
+      name: 'getStakerByAddress',
+      call: 'sfc_getStakerByAddress',
+      params: 2,
+      inputFormatter: [utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputStakerFormatter
+    });
+
+    var getStakers = new Method({
+      name: 'getStakers',
+      call: 'sfc_getStakers',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputStakersFormatter
+    });
+
+    var getDelegationsOf = new Method({
+      name: 'getDelegationsOf',
+      call: 'sfc_getDelegationsOf',
+      params: 2,
+      inputFormatter: [utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputDelegationsFormatter
+    });
+
+    var getDelegationsByAddress = new Method({
+      name: 'getDelegationsByAddress',
+      call: 'sfc_getDelegationsByAddress',
+      params: 2,
+      inputFormatter: [utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputDelegationsFormatter
+    });
+
+    var getDelegation = new Method({
+      name: 'getDelegation',
+      call: 'sfc_getDelegation',
+      params: 3,
+      inputFormatter: [utils.toHex, utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputDelegationFormatter
+    });
+
+    var getDelegationClaimedRewards = new Method({
+      name: 'getDelegationClaimedRewards',
+      call: 'sfc_getDelegationClaimedRewards',
+      params: 2,
+      inputFormatter: [utils.toHex, utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    var getStakerClaimedRewards = new Method({
+      name: 'getStakerClaimedRewards',
+      call: 'sfc_getStakerClaimedRewards',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    var getStakerDelegationsClaimedRewards = new Method({
+      name: 'getStakerDelegationsClaimedRewards',
+      call: 'sfc_getStakerDelegationsClaimedRewards',
+      params: 1,
+      inputFormatter: [utils.toHex],
+      outputFormatter: formatters.outputBigNumberFormatter
+    });
+
+    return [
+      getValidationScore,
+      getOriginationScore,
+      getStakerPoI,
+      getRewardWeights,
+      getDowntime,
+      getStaker,
+      getStakerByAddress,
+      getStakers,
+      getDelegationsOf,
+      getDelegationsByAddress,
+      getDelegation,
+      getDelegationClaimedRewards,
+      getStakerClaimedRewards,
+      getStakerDelegationsClaimedRewards
+    ];
+};
+
+var properties = function () {
+    return [];
+};
+
+module.exports = Sfc;
+
+},{"../../utils/utils":20,"../formatters":30,"../method":36,}],382:[function(require,module,exports){
+    /*
+          This file is part of web3.js.
+
+          web3.js is free software: you can redistribute it and/or modify
+          it under the terms of the GNU Lesser General Public License as published by
+          the Free Software Foundation, either version 3 of the License, or
+          (at your option) any later version.
+
+          web3.js is distributed in the hope that it will be useful,
+          but WITHOUT ANY WARRANTY; without even the implied warranty of
+          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+          GNU Lesser General Public License for more details.
+
+          You should have received a copy of the GNU Lesser General Public License
+          along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    */
+    /**
+     * @file abft.js
+     * @author alex <rusdev.alex@gmail.com>
+     * @date 2021
+     */
+
+    "use strict";
+
+    var formatters = require('../formatters');
+    var utils = require('../../utils/utils');
+    var Method = require('../method');
+
+    function Abft(web3) {
+        this._requestManager = web3._requestManager;
+
+        var self = this;
+
+        methods().forEach(function(method) {
+          method.attachToObject(self);
+          method.setRequestManager(self._requestManager);
+        });
+
+        properties().forEach(function(p) {
+          p.attachToObject(self);
+          p.setRequestManager(self._requestManager);
+        });
+
+    }
+
+    var methods = function () {
+
+        var getDowntime = new Method({
+          name: 'getDowntime',
+          call: 'abft_getDowntime',
+          params: 1,
+          inputFormatter: [utils.toHex],
+          outputFormatter: formatters.outputDecimalProperties
+        });
+
+        var getEpochUptime = new Method({
+          name: 'getEpochUptime',
+          call: 'abft_getEpochUptime',
+          params: 1,
+          inputFormatter: [utils.toHex],
+          outputFormatter: formatters.outputBigNumberFormatter
+        });
+
+        var getOriginatedEpochFee = new Method({
+          name: 'getOriginatedEpochFee',
+          call: 'abft_getOriginatedEpochFee',
+          params: 1,
+          inputFormatter: [utils.toHex],
+          outputFormatter: formatters.outputBigNumberFormatter
+        });
+
+        return [
+          getDowntime,
+          getEpochUptime,
+          getOriginatedEpochFee,
+        ];
+    };
+
+    var properties = function () {
+        return [];
+    };
+
+    module.exports = Abft;
+
+},{"../../utils/utils":20,"../formatters":30,"../method":36}],383:[function(require,module,exports){
+    /*
+            This file is part of web3.js.
+
+            web3.js is free software: you can redistribute it and/or modify
+            it under the terms of the GNU Lesser General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+
+            web3.js is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+            GNU Lesser General Public License for more details.
+
+            You should have received a copy of the GNU Lesser General Public License
+            along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    */
+    /**
+     * @file dag.js
+     * @author alex <rusdev.alex@gmail.com>
+     * @date 2021
+     */
+
+    "use strict";
+
+    var formatters = require('../formatters');
+    var utils = require('../../utils/utils');
+    var Method = require('../method');
+
+    function Dag(web3) {
+        this._requestManager = web3._requestManager;
+
+        var self = this;
+
+        methods().forEach(function(method) {
+            method.attachToObject(self);
+            method.setRequestManager(self._requestManager);
+        });
+
+        properties().forEach(function(p) {
+            p.attachToObject(self);
+            p.setRequestManager(self._requestManager);
+        });
+
+    }
+
+    var methods = function () {
+
+        var getEvent = new Method({
+            name: 'getEvent',
+            call: 'dag_getEvent',
+            params: 1,
+            inputFormatter: [null],
+            outputFormatter: formatters.outputDagEventFormatter
+        });
+
+        var getEventPayload = new Method({
+            name: 'getEventPayload',
+            call: 'dag_getEventPayload',
+            params: 2,
+            inputFormatter: [null, function (val) { return !!val; }],
+            outputFormatter: formatters.outputDagEventFormatter
+        });
+
+        var getHeads = new Method({
+            name: 'getHeads',
+            call: 'dag_getHeads',
+            params: 1,
+            inputFormatter: [formatters.inputBlockNumberFormatter],
+            outputFormatter: formatters.outputHeadsFormatter
+        });
+
+        return [
+            getEvent,
+            getEventPayload,
+            getHeads,
+        ];
+    };
+
+    var properties = function () {
+        return [];
+    };
+
+    module.exports = Dag;
+
+    },{"../../utils/utils":20,"../formatters":30,"../method":36}],39:[function(require,module,exports){
 /*
     This file is part of web3.js.
 
@@ -5554,7 +6392,7 @@ var Net = function (web3) {
 
     var self = this;
 
-    properties().forEach(function(p) { 
+    properties().forEach(function(p) {
         p.attachToObject(self);
         p.setRequestManager(web3._requestManager);
     });
@@ -5864,7 +6702,6 @@ module.exports = Shh;
  *
  * Reference: https://github.com/ethereum/go-ethereum/blob/swarm/internal/web3ext/web3ext.go#L33
  */
-
 "use strict";
 
 var Method = require('../method');
@@ -5972,16 +6809,7 @@ var methods = function () {
 };
 
 var properties = function () {
-    return [
-        new Property({
-            name: 'hive',
-            getter: 'bzz_hive'
-        }),
-        new Property({
-            name: 'info',
-            getter: 'bzz_info'
-        })
-    ];
+    return [];
 };
 
 
@@ -6013,7 +6841,7 @@ module.exports = Swarm;
 var Method = require('../method');
 
 /// @returns an array of objects describing web3.eth.filter api methods
-var eth = function () {
+var ftm = function () {
     var newFilterCall = function (args) {
         var type = args[0];
 
@@ -6091,7 +6919,7 @@ var shh = function () {
 };
 
 module.exports = {
-    eth: eth,
+    ftm: ftm,
     shh: shh
 };
 
@@ -6113,7 +6941,7 @@ module.exports = {
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file namereg.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -6300,7 +7128,7 @@ module.exports = Property;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file requestmanager.js
  * @author Jeffrey Wilcke <jeff@ethdev.com>
  * @author Marek Kotewicz <marek@ethdev.com>
@@ -6367,7 +7195,7 @@ RequestManager.prototype.sendAsync = function (data, callback) {
         if (err) {
             return callback(err);
         }
-        
+
         if (!Jsonrpc.isValidResponse(result)) {
             return callback(errors.InvalidResponse(result));
         }
@@ -6400,7 +7228,7 @@ RequestManager.prototype.sendBatch = function (data, callback) {
         }
 
         callback(err, results);
-    }); 
+    });
 };
 
 /**
@@ -6481,7 +7309,7 @@ RequestManager.prototype.reset = function (keepIsSyncing) {
  */
 RequestManager.prototype.poll = function () {
     /*jshint maxcomplexity: 6 */
-    this.timeout = setTimeout(this.poll.bind(this), c.ETH_POLLING_TIMEOUT);
+    this.timeout = setTimeout(this.poll.bind(this), c.FTM_POLLING_TIMEOUT);
 
     if (Object.keys(this.polls).length === 0) {
         return;
@@ -6504,7 +7332,7 @@ RequestManager.prototype.poll = function () {
     }
 
     var payload = Jsonrpc.toBatchPayload(pollsData);
-    
+
     // map the request id to they poll id
     var pollsIdMap = {};
     payload.forEach(function(load, index){
@@ -6534,7 +7362,7 @@ RequestManager.prototype.poll = function () {
             } else
                 return false;
         }).filter(function (result) {
-            return !!result; 
+            return !!result;
         }).filter(function (result) {
             var valid = Jsonrpc.isValidResponse(result);
             if (!valid) {
@@ -6609,16 +7437,16 @@ var pollSyncing = function(self) {
 
         self.callbacks.forEach(function (callback) {
             if (self.lastSyncState !== sync) {
-                
+
                 // call the callback with true first so the app can stop anything, before receiving the sync data
                 if(!self.lastSyncState && utils.isObject(sync))
                     callback(null, true);
-                
+
                 // call on the next CPU cycle, so the actions of the sync stop can be processes first
                 setTimeout(function() {
                     callback(null, sync);
                 }, 0);
-                
+
                 self.lastSyncState = sync;
             }
         });
@@ -6673,7 +7501,7 @@ module.exports = IsSyncing;
     You should have received a copy of the GNU Lesser General Public License
     along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-/** 
+/**
  * @file transfer.js
  * @author Marek Kotewicz <marek@ethdev.com>
  * @date 2015
@@ -6691,25 +7519,25 @@ var exchangeAbi = require('../contracts/SmartExchange.json');
  * @param {Value} value to be tranfered
  * @param {Function} callback, callback
  */
-var transfer = function (eth, from, to, value, callback) {
-    var iban = new Iban(to); 
+var transfer = function (ftm, from, to, value, callback) {
+    var iban = new Iban(to);
     if (!iban.isValid()) {
         throw new Error('invalid iban address');
     }
 
     if (iban.isDirect()) {
-        return transferToAddress(eth, from, iban.address(), value, callback);
-    }
-    
-    if (!callback) {
-        var address = eth.icapNamereg().addr(iban.institution());
-        return deposit(eth, from, address, value, iban.client());
+        return transferToAddress(ftm, from, iban.address(), value, callback);
     }
 
-    eth.icapNamereg().addr(iban.institution(), function (err, address) {
-        return deposit(eth, from, address, value, iban.client(), callback);
+    if (!callback) {
+        var address = ftm.icapNamereg().addr(iban.institution());
+        return deposit(ftm, from, address, value, iban.client());
+    }
+
+    ftm.icapNamereg().addr(iban.institution(), function (err, address) {
+        return deposit(ftm, from, address, value, iban.client(), callback);
     });
-    
+
 };
 
 /**
@@ -6721,8 +7549,8 @@ var transfer = function (eth, from, to, value, callback) {
  * @param {Value} value to be tranfered
  * @param {Function} callback, callback
  */
-var transferToAddress = function (eth, from, to, value, callback) {
-    return eth.sendTransaction({
+var transferToAddress = function (ftm, from, to, value, callback) {
+    return ftm.sendTransaction({
         address: to,
         from: from,
         value: value
@@ -6739,9 +7567,9 @@ var transferToAddress = function (eth, from, to, value, callback) {
  * @param {String} client unique identifier
  * @param {Function} callback, callback
  */
-var deposit = function (eth, from, to, value, client, callback) {
+var deposit = function (ftm, from, to, value, client, callback) {
     var abi = exchangeAbi;
-    return eth.contract(abi).at(to).deposit(client, {
+    return ftm.contract(abi).at(to).deposit(client, {
         from: from,
         value: value
     }, callback);
@@ -13617,7 +14445,7 @@ module.exports = BigNumber; // jshint ignore:line
 },{}],"web3":[function(require,module,exports){
 var Web3 = require('./lib/web3');
 
-// dont override global variable
+// don't override global variable
 if (typeof window !== 'undefined' && typeof window.Web3 === 'undefined') {
     window.Web3 = Web3;
 }
@@ -13626,3 +14454,4 @@ module.exports = Web3;
 
 },{"./lib/web3":22}]},{},["web3"])
 //# sourceMappingURL=web3-light.js.map
+//

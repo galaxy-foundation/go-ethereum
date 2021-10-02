@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/galaxy-foundation/go-ethereum/common/mclock"
-	"github.com/galaxy-foundation/go-ethereum/common/prque"
+	"github.com/ethereum/go-ethereum/common/mclock"
+	"github.com/ethereum/go-ethereum/common/prque"
 )
 
 // cmNodeFields are ClientNode fields used by the client manager
@@ -108,7 +108,7 @@ type ClientManager struct {
 func NewClientManager(curve PieceWiseLinear, clock mclock.Clock) *ClientManager {
 	cm := &ClientManager{
 		clock:         clock,
-		rcQueue:       prque.New(func(a interface{}, i int) { a.(*ClientNode).queueIndex = i }),
+		rcQueue:       prque.NewWrapAround(func(a interface{}, i int) { a.(*ClientNode).queueIndex = i }),
 		capLastUpdate: clock.Now(),
 		stop:          make(chan chan struct{}),
 	}

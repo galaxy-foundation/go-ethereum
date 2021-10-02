@@ -20,7 +20,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/galaxy-foundation/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 const (

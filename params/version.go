@@ -21,31 +21,31 @@ import (
 )
 
 var (
-	VersionMajor = 1          // Major version component of the current release
-	VersionMinor = 9          // Minor version component of the current release
-	VersionPatch = 7          // Patch version component of the current release
-	VersionMeta  = "unstable" // Version metadata to append to the version string
+	VersionMajor = 1        // Major version component of the current release
+	VersionMinor = 10       // Minor version component of the current release
+	VersionPatch = 3        // Patch version component of the current release
+	VersionMeta  = "stable" // Version metadata to append to the version string
 )
 
 // Version holds the textual version string.
-var Version = func() string {
+func Version() string {
 	return fmt.Sprintf("%d.%d.%d", VersionMajor, VersionMinor, VersionPatch)
-}()
+}
 
 // VersionWithMeta holds the textual version string including the metadata.
-var VersionWithMeta = func() string {
-	v := Version
+func VersionWithMeta() string {
+	v := Version()
 	if VersionMeta != "" {
 		v += "-" + VersionMeta
 	}
 	return v
-}()
+}
 
 // ArchiveVersion holds the textual version string used for Geth archives.
 // e.g. "1.8.11-dea1ce05" for stable releases, or
 //      "1.8.13-unstable-21c059b6" for unstable releases
 func ArchiveVersion(gitCommit string) string {
-	vsn := Version
+	vsn := Version()
 	if VersionMeta != "stable" {
 		vsn += "-" + VersionMeta
 	}
@@ -56,7 +56,7 @@ func ArchiveVersion(gitCommit string) string {
 }
 
 func VersionWithCommit(gitCommit, gitDate string) string {
-	vsn := VersionWithMeta
+	vsn := VersionWithMeta()
 	if len(gitCommit) >= 8 {
 		vsn += "-" + gitCommit[:8]
 	}

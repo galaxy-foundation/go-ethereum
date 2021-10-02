@@ -27,16 +27,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/galaxy-foundation/go-ethereum/accounts"
-	"github.com/galaxy-foundation/go-ethereum/accounts/keystore"
-	"github.com/galaxy-foundation/go-ethereum/common"
-	"github.com/galaxy-foundation/go-ethereum/common/hexutil"
-	"github.com/galaxy-foundation/go-ethereum/core/types"
-	"github.com/galaxy-foundation/go-ethereum/internal/ethapi"
-	"github.com/galaxy-foundation/go-ethereum/rlp"
-	"github.com/galaxy-foundation/go-ethereum/signer/core"
-	"github.com/galaxy-foundation/go-ethereum/signer/fourbyte"
-	"github.com/galaxy-foundation/go-ethereum/signer/storage"
+	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/signer/core"
+	"github.com/ethereum/go-ethereum/signer/fourbyte"
+	"github.com/ethereum/go-ethereum/signer/storage"
 )
 
 //Used for testing
@@ -71,7 +71,7 @@ func (ui *headlessUi) ApproveTx(request *core.SignTxRequest) (core.SignTxRespons
 }
 
 func (ui *headlessUi) ApproveSignData(request *core.SignDataRequest) (core.SignDataResponse, error) {
-	approved := "Y" == <-ui.approveCh
+	approved := (<-ui.approveCh == "Y")
 	return core.SignDataResponse{approved}, nil
 }
 
@@ -91,7 +91,7 @@ func (ui *headlessUi) ApproveListing(request *core.ListRequest) (core.ListRespon
 }
 
 func (ui *headlessUi) ApproveNewAccount(request *core.NewAccountRequest) (core.NewAccountResponse, error) {
-	if "Y" == <-ui.approveCh {
+	if <-ui.approveCh == "Y" {
 		return core.NewAccountResponse{true}, nil
 	}
 	return core.NewAccountResponse{false}, nil

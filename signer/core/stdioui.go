@@ -18,16 +18,14 @@ package core
 
 import (
 	"context"
-	"sync"
 
-	"github.com/galaxy-foundation/go-ethereum/internal/ethapi"
-	"github.com/galaxy-foundation/go-ethereum/log"
-	"github.com/galaxy-foundation/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type StdIOUI struct {
 	client rpc.Client
-	mu     sync.Mutex
 }
 
 func NewStdIOUI() *StdIOUI {
