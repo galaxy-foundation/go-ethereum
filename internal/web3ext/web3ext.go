@@ -22,9 +22,9 @@ var Modules = map[string]string{
 	"admin":      AdminJs,
 	"chequebook": ChequebookJs,
 	"clique":     CliqueJs,
-	"ftmash":     FtmashJs,
+	"icicbash":   IcicbashJs,
 	"debug":      DebugJs,
-	"ftm":        FtmJs,
+	"icicb":      IcicbJs,
 	"miner":      MinerJs,
 	"net":        NetJs,
 	"personal":   PersonalJs,
@@ -118,9 +118,9 @@ web3._extend({
 });
 `
 
-const FtmashJs = `
+const IcicbashJs = `
 web3._extend({
-	property: 'ftmash',
+	property: 'icicbash',
 	methods: [
 		new web3._extend.Method({
 			name: 'getWork',
@@ -487,9 +487,9 @@ web3._extend({
 });
 `
 
-const FtmJs = `
+const IcicbJs = `
 web3._extend({
-	property: 'ftm',
+	property: 'icicb',
 	methods: [
 		new web3._extend.Method({
 			name: 'chainId',
