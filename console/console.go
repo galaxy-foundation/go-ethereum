@@ -108,7 +108,7 @@ func New(config Config) (*Console, error) {
 	return console, nil
 }
 
-// init retrieves the available APIs from the remote RPC provider and initializes
+// init  retrieves the available APIs from the remote RPC provider and initializes
 // the console's JavaScript namespaces based on the exposed modules.
 func (c *Console) init(preload []string) error {
 	c.initConsoleObject()
